@@ -1,8 +1,9 @@
 import logging
-import tempfile
 import os
-import torch
+import tempfile
 from collections import OrderedDict
+
+import torch
 from tqdm import tqdm
 
 from maskrcnn_benchmark.modeling.roi_heads.mask_head.inference import Masker
@@ -11,13 +12,13 @@ from maskrcnn_benchmark.structures.boxlist_ops import boxlist_iou
 
 
 def do_coco_evaluation(
-    dataset,
-    predictions,
-    box_only,
-    output_folder,
-    iou_types,
-    expected_results,
-    expected_results_sigma_tol,
+        dataset,
+        predictions,
+        box_only,
+        output_folder,
+        iou_types,
+        expected_results,
+        expected_results_sigma_tol,
 ):
     logger = logging.getLogger("maskrcnn_benchmark.inference")
 
@@ -185,9 +186,10 @@ def prepare_for_coco_keypoint(predictions, dataset):
             'score': scores[k]} for k, keypoint in enumerate(keypoints)])
     return coco_results
 
+
 # inspired from Detectron
 def evaluate_box_proposals(
-    predictions, dataset, thresholds=None, area="all", limit=None
+        predictions, dataset, thresholds=None, area="all", limit=None
 ):
     """Evaluate detection proposal recall metrics. This function is a much
     faster alternative to the official COCO API recall evaluation code. However,
@@ -303,7 +305,7 @@ def evaluate_box_proposals(
 
 
 def evaluate_predictions_on_coco(
-    coco_gt, coco_results, json_result_file, iou_type="bbox"
+        coco_gt, coco_results, json_result_file, iou_type="bbox"
 ):
     import json
 

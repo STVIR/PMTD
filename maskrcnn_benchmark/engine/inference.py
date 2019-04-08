@@ -1,14 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import logging
-import time
 import os
 
 import torch
 from tqdm import tqdm
 
 from maskrcnn_benchmark.data.datasets.evaluation import evaluate
-from ..utils.comm import is_main_process, get_world_size
 from ..utils.comm import all_gather
+from ..utils.comm import is_main_process, get_world_size
 from ..utils.comm import synchronize
 from ..utils.timer import Timer, get_time_str
 
