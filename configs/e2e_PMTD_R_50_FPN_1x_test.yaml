@@ -12,6 +12,8 @@ MODEL:
   BACKBONE:
     CONV_BODY: "R-50-FPN"
   RESNETS:
+    STEM_FUNC: "StemWithBatchNorm"
+    TRANS_FUNC: "BottleneckWithBatchNorm"
     BACKBONE_OUT_CHANNELS: 256
     STRIDE_IN_1X1: False
   RPN:

@@ -1,6 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+import cv2
+import os
 import torch
 import torchvision
+
+from PIL import Image
 
 from maskrcnn_benchmark.structures.bounding_box import BoxList
 from maskrcnn_benchmark.structures.segmentation_mask import SegmentationMask
@@ -63,8 +67,22 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
         self.id_to_img_map = {k: v for k, v in enumerate(self.ids)}
         self._transforms = transforms
 
+    def super_getitem(self, index):
+        coco = self.coco
+        img_id = self.ids[index]
+        ann_ids = coco.getAnnIds(imgIds=img_id)
+        target = coco.loadAnns(ann_ids)
+        path = coco.loadImgs(img_id)[0]['file_name']
+
+        # change PIL Image.open() to OpenCV cv2.imread()
+        img = cv2.imread(os.path.join(self.root, path), cv2.IMREAD_IGNORE_ORIENTATION + cv2.IMREAD_COLOR)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(img)
+
+        return img, target
+
     def __getitem__(self, idx):
-        img, anno = super(COCODataset, self).__getitem__(idx)
+        img, anno = self.super_getitem(idx)
 
         # filter crowd annotations
         # TODO might be better to add an extra field

@@ -1,4 +1,6 @@
-from torchvision.transforms import functional as F
+import cv2
+import numpy as np
+from PIL import Image
 
 
 class Resize(object):
@@ -25,14 +27,20 @@ class Resize(object):
 
         return oh, ow
 
+    def resize(self, image, size):
+        image = np.array(image)
+        image = cv2.resize(image, (size[1], size[0]))
+        image = Image.fromarray(image)
+        return image
+
     def call_1(self, image):
         size = self.get_size(image.size)
-        image = F.resize(image, size)
+        image = self.resize(image, size)
         return image
 
     def call_2(self, image, target):
         size = self.get_size(image.size)
-        image = F.resize(image, size)
+        image = self.resize(image, size)
         target = target.resize(size)
         return image, target
 
