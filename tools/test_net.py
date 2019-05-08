@@ -7,6 +7,8 @@ import argparse
 import os
 
 import torch
+
+from demo.inference import PlaneClustering
 from maskrcnn_benchmark.config import cfg
 from maskrcnn_benchmark.data import make_data_loader
 from maskrcnn_benchmark.engine.inference import inference
@@ -39,6 +41,12 @@ def main():
         help="Modify config options using the command-line",
         default=None,
         nargs=argparse.REMAINDER,
+    )
+    parser.add_argument(
+        "--coco_eval",
+        default="PlaneClustering",
+        choices=["PlaneClustering", "HardThreshold"],
+        help="eval method used in coco segmentation evaluation"
     )
 
     args = parser.parse_args()
@@ -89,7 +97,7 @@ def main():
             mkdir(output_folder)
             output_folders[idx] = output_folder
     data_loaders_val = make_data_loader(cfg, is_train=False, is_distributed=distributed)
-    masker = Masker(threshold=0.01, padding=1)
+    masker = build_masker(args.coco_eval)
     for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
         inference(
             model,
@@ -104,6 +112,13 @@ def main():
             output_folder=output_folder,
         )
         synchronize()
+
+
+def build_masker(coco_eval):
+    if coco_eval == 'PlaneClustering':
+        return PlaneClustering()
+    else:
+        return Masker(threshold=0.01, padding=1)
 
 
 if __name__ == "__main__":

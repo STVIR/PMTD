@@ -6,6 +6,7 @@ from collections import OrderedDict
 import torch
 from tqdm import tqdm
 
+from demo.inference import PlaneClustering
 from maskrcnn_benchmark.modeling.roi_heads.mask_head.inference import Masker
 from maskrcnn_benchmark.structures.bounding_box import BoxList
 from maskrcnn_benchmark.structures.boxlist_ops import boxlist_iou
@@ -121,7 +122,10 @@ def prepare_for_coco_segmentation(predictions, dataset, masker):
         prediction = prediction.resize((image_width, image_height))
         masks = prediction.get_field("mask")
         # t = time.time()
+
+        # When evaluating, we convert the masks from 28x28 "heatmap" to "binary mask" or "polygon points list" by masker
         masks = masker.forward_single_image(masks, prediction)
+
         # logger.info('Time mask: {}'.format(time.time() - t))
         # prediction = prediction.convert('xywh')
 
@@ -131,10 +135,15 @@ def prepare_for_coco_segmentation(predictions, dataset, masker):
 
         # rles = prediction.get_field('mask')
 
-        rles = [
-            mask_util.encode(np.array(mask[0, :, :, np.newaxis], order="F"))[0]
-            for mask in masks
-        ]
+        # Then convert masks in ["polygon points list", "binary mask"] to RLE
+        if isinstance(masker, PlaneClustering):
+            points_list = masks.reshape((-1, 8)).tolist()
+            rles = mask_util.frPyObjects(points_list, image_height, image_width)
+        else:
+            rles = [
+                mask_util.encode(np.array(mask[0, :, :, np.newaxis], order="F"))[0]
+                for mask in masks
+            ]
         for rle in rles:
             rle["counts"] = rle["counts"].decode("utf-8")
 
