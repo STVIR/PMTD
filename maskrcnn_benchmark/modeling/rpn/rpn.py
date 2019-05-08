@@ -106,6 +106,54 @@ class RPNHead(nn.Module):
         return logits, bbox_reg
 
 
+@registry.RPN_HEADS.register("SingleConvRPNHead_Softmax")
+class RPNHead_Softmax(nn.Module):
+    """
+    Adds a simple RPN Head with classification and regression heads
+    """
+
+    def __init__(self, cfg, in_channels, num_anchors):
+        """
+        Arguments:
+            cfg              : config
+            in_channels (int): number of channels of the input feature
+            num_anchors (int): number of anchors to be predicted
+        """
+        super(RPNHead_Softmax, self).__init__()
+        self.conv = nn.Conv2d(
+            in_channels, in_channels, kernel_size=3, stride=1, padding=1
+        )
+        self.num_classes = cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES
+        self.cls_logits = nn.Conv2d(in_channels, num_anchors * self.num_classes, kernel_size=1, stride=1)
+        self.bbox_pred = nn.Conv2d(
+            in_channels, num_anchors * 4, kernel_size=1, stride=1
+        )
+
+        for l in [self.conv, self.cls_logits, self.bbox_pred]:
+            torch.nn.init.normal_(l.weight, std=0.01)
+            torch.nn.init.constant_(l.bias, 0)
+
+    def get_logits(self, t):
+        pred_cls = self.cls_logits(t)
+        B, _, H, W = pred_cls.shape
+        # [B, num_anchors * num_classes, H, W] -> [B, num_anchors, num_classes, H, W]
+        pred_cls = pred_cls.reshape((B, -1, self.num_classes, H, W))
+        pred_cls = F.softmax(pred_cls, dim=2)
+        pred_cls = pred_cls[:, :, 1]
+        # logits = inverse_sigmoid(pred_cls)
+        logits = torch.log(pred_cls / (1 - pred_cls))
+        return logits
+
+    def forward(self, x):
+        logits = []
+        bbox_reg = []
+        for feature in x:
+            t = F.relu(self.conv(feature))
+            logits.append(self.get_logits(t))
+            bbox_reg.append(self.bbox_pred(t))
+        return logits, bbox_reg
+
+
 class RPNModule(torch.nn.Module):
     """
     Module for RPN computation. Takes feature maps from the backbone and RPN

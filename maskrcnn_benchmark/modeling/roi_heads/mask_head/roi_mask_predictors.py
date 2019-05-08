@@ -7,6 +7,34 @@ from maskrcnn_benchmark.layers import ConvTranspose2d
 from maskrcnn_benchmark.modeling import registry
 
 
+@registry.ROI_MASK_PREDICTOR.register("MaskRCNNC4Predictor_Upsample")
+class MaskRCNNC4Predictor_Upsample(nn.Module):
+    def __init__(self, cfg, in_channels):
+        super(MaskRCNNC4Predictor_Upsample, self).__init__()
+        num_classes = cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES
+        dim_reduced = cfg.MODEL.ROI_MASK_HEAD.CONV_LAYERS[-1]
+        num_inputs = in_channels
+
+        self.conv5_mask = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
+            nn.Conv2d(num_inputs, dim_reduced, 3, 1, 1),
+        )
+        self.mask_fcn_logits = Conv2d(dim_reduced, num_classes, 1, 1, 0)
+
+        for name, param in self.named_parameters():
+            if "bias" in name:
+                nn.init.constant_(param, 0)
+            elif "weight" in name:
+                # Caffe2 implementation uses MSRAFill, which in fact
+                # corresponds to kaiming_normal_ in PyTorch
+                nn.init.kaiming_normal_(param, mode="fan_out", nonlinearity="relu")
+
+    def forward(self, x):
+        x = F.relu(self.conv5_mask(x))
+        # In PMTD, we move sigmoid from ROIMaskHead.post_processor to here
+        return self.mask_fcn_logits(x).sigmoid()
+
+
 @registry.ROI_MASK_PREDICTOR.register("MaskRCNNC4Predictor")
 class MaskRCNNC4Predictor(nn.Module):
     def __init__(self, cfg, in_channels):

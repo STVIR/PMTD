@@ -103,6 +103,10 @@ class DatasetCatalog(object):
         "cityscapes_fine_instanceonly_seg_test_cocostyle": {
             "img_dir": "cityscapes/images",
             "ann_file": "cityscapes/annotations/instancesonly_filtered_gtFine_test.json"
+        },
+        "icdar_2017_mlt_val": {
+            "img_dir": "icdar2017mlt/ch8_validation_images",
+            "ann_file": "icdar2017mlt/annotations/validate_coco_with_ignore.json"
         }
     }
 
@@ -128,6 +132,17 @@ class DatasetCatalog(object):
             )
             return dict(
                 factory="PascalVOCDataset",
+                args=args,
+            )
+        elif "icdar" in name:
+            data_dir = DatasetCatalog.DATA_DIR
+            attrs = DatasetCatalog.DATASETS[name]
+            args = dict(
+                root=os.path.join(data_dir, attrs["img_dir"]),
+                ann_file=os.path.join(data_dir, attrs["ann_file"]),
+            )
+            return dict(
+                factory="COCODataset",
                 args=args,
             )
         raise RuntimeError("Dataset not available: {}".format(name))

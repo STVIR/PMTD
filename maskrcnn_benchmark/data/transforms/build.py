@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+import demo.transforms as demo
 from . import transforms as T
 
 
@@ -31,10 +32,13 @@ def build_transforms(cfg, is_train=True):
         hue=hue,
     )
 
+    if min_size < 0:
+        Resize = demo.Resize(max_size, with_target=True)
+    else:
+        Resize = T.Resize(min_size, max_size)
     transform = T.Compose(
         [
-            color_jitter,
-            T.Resize(min_size, max_size),
+            Resize,
             T.RandomHorizontalFlip(flip_prob),
             T.ToTensor(),
             normalize_transform,

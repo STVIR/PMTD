@@ -24,10 +24,10 @@ class MaskPostProcessor(nn.Module):
         super(MaskPostProcessor, self).__init__()
         self.masker = masker
 
-    def forward(self, x, boxes):
+    def forward(self, mask_prob, boxes):
         """
         Arguments:
-            x (Tensor): the mask logits
+            mask_prob (Tensor): sigmoid(mask_logits). In PMTD, we move sigmoid to ROIMaskHead.predictor
             boxes (list[BoxList]): bounding boxes that are used as
                 reference, one for ech image
 
@@ -35,10 +35,8 @@ class MaskPostProcessor(nn.Module):
             results (list[BoxList]): one BoxList for each image, containing
                 the extra field mask
         """
-        mask_prob = x.sigmoid()
-
         # select masks coresponding to the predicted classes
-        num_masks = x.shape[0]
+        num_masks = mask_prob.shape[0]
         labels = [bbox.get_field("labels") for bbox in boxes]
         labels = torch.cat(labels)
         index = torch.arange(num_masks, device=labels.device)
