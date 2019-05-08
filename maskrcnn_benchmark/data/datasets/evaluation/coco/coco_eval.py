@@ -19,6 +19,7 @@ def do_coco_evaluation(
         iou_types,
         expected_results,
         expected_results_sigma_tol,
+        masker,
 ):
     logger = logging.getLogger("maskrcnn_benchmark.inference")
 
@@ -45,7 +46,7 @@ def do_coco_evaluation(
         coco_results["bbox"] = prepare_for_coco_detection(predictions, dataset)
     if "segm" in iou_types:
         logger.info("Preparing segm results")
-        coco_results["segm"] = prepare_for_coco_segmentation(predictions, dataset)
+        coco_results["segm"] = prepare_for_coco_segmentation(predictions, dataset, masker)
     if 'keypoints' in iou_types:
         logger.info('Preparing keypoints results')
         coco_results['keypoints'] = prepare_for_coco_keypoint(predictions, dataset)
@@ -102,11 +103,11 @@ def prepare_for_coco_detection(predictions, dataset):
     return coco_results
 
 
-def prepare_for_coco_segmentation(predictions, dataset):
+def prepare_for_coco_segmentation(predictions, dataset, masker):
     import pycocotools.mask as mask_util
     import numpy as np
 
-    masker = Masker(threshold=0.5, padding=1)
+    assert isinstance(masker, Masker)
     # assert isinstance(dataset, COCODataset)
     coco_results = []
     for image_id, prediction in tqdm(enumerate(predictions)):
@@ -120,10 +121,7 @@ def prepare_for_coco_segmentation(predictions, dataset):
         prediction = prediction.resize((image_width, image_height))
         masks = prediction.get_field("mask")
         # t = time.time()
-        # Masker is necessary only if masks haven't been already resized.
-        if list(masks.shape[-2:]) != [image_height, image_width]:
-            masks = masker(masks.expand(1, -1, -1, -1, -1), prediction)
-            masks = masks[0]
+        masks = masker.forward_single_image(masks, prediction)
         # logger.info('Time mask: {}'.format(time.time() - t))
         # prediction = prediction.convert('xywh')
 

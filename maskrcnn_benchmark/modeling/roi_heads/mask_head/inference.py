@@ -200,10 +200,10 @@ class Masker(object):
 
 
 def make_roi_mask_post_processor(cfg):
+    # In the statement "mask_prob = self.masker(mask_prob, boxes)" from MaskPostProcessor.forward
+    # the image size got from boxes is the resized image shape (INPUT.MAX_SIZE_TEST), not the origin image shape
+    # even doing postprocess in this stage, we still need to "masker" again in the coco_eval method
+    # so, we decide to delete this masker, and move it to the evaluation method
     if cfg.MODEL.ROI_MASK_HEAD.POSTPROCESS_MASKS:
-        mask_threshold = cfg.MODEL.ROI_MASK_HEAD.POSTPROCESS_MASKS_THRESHOLD
-        masker = Masker(threshold=mask_threshold, padding=1)
-    else:
-        masker = None
-    mask_post_processor = MaskPostProcessor(masker)
-    return mask_post_processor
+        raise ValueError("Not recommend doing postprocess in this stage, see the above explanation for details.")
+    return MaskPostProcessor(masker=None)

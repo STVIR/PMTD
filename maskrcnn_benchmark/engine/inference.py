@@ -6,6 +6,7 @@ import torch
 from tqdm import tqdm
 
 from maskrcnn_benchmark.data.datasets.evaluation import evaluate
+from maskrcnn_benchmark.modeling.roi_heads.mask_head.inference import Masker
 from ..utils.comm import all_gather
 from ..utils.comm import is_main_process, get_world_size
 from ..utils.comm import synchronize
@@ -59,6 +60,7 @@ def inference(
         model,
         data_loader,
         dataset_name,
+        masker,
         iou_types=("bbox",),
         box_only=False,
         device="cuda",
@@ -101,11 +103,14 @@ def inference(
     if output_folder:
         torch.save(predictions, os.path.join(output_folder, "predictions.pth"))
 
+    assert isinstance(masker, Masker)
+
     extra_args = dict(
         box_only=box_only,
         iou_types=iou_types,
         expected_results=expected_results,
         expected_results_sigma_tol=expected_results_sigma_tol,
+        masker=masker
     )
 
     return evaluate(dataset=dataset,
