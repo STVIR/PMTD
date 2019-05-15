@@ -8,6 +8,9 @@
 - matplotlib
 - GCC >= 4.9
 - OpenCV
+- pyclipper
+
+# Test on (cuda 9.0 + gcc 4.9) and (cuda 10.0 + gcc 6.5)
 
 
 ### Option 1: Step-by-step installation
@@ -24,11 +27,12 @@ conda activate maskrcnn_benchmark
 conda install ipython
 
 # maskrcnn_benchmark and coco api dependencies
-pip install ninja yacs cython matplotlib tqdm opencv-python
+pip install ninja yacs cython matplotlib tqdm opencv-python pyclipper
 
 # follow PyTorch installation in https://pytorch.org/get-started/locally/
 # we give the instructions for CUDA 9.0
 conda install -c pytorch pytorch-nightly torchvision cudatoolkit=9.0
+# or pip install pytorch-nightly torchvision cudatoolkit==9.0
 
 export INSTALL_DIR=$PWD
 
@@ -46,8 +50,8 @@ python setup.py install --cuda_ext --cpp_ext
 
 # install PyTorch Detection
 cd $INSTALL_DIR
-git clone https://github.com/facebookresearch/maskrcnn-benchmark.git
-cd maskrcnn-benchmark
+git clone https://github.com/PMTD/PMTD.git
+cd PMTD
 
 # the following will install the lib with
 # symbolic links, so that you can modify

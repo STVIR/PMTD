@@ -29,7 +29,7 @@ ENV PATH=$CONDA_PREFIX/bin:$PATH
 ENV CONDA_AUTO_UPDATE_CONDA=false
 
 RUN conda install -y ipython
-RUN pip install ninja yacs cython matplotlib opencv-python tqdm
+RUN pip install ninja yacs cython matplotlib opencv-python tqdm pyclipper
 
 # Install PyTorch 1.0 Nightly
 ARG CUDA
@@ -54,8 +54,8 @@ RUN git clone https://github.com/NVIDIA/apex.git \
 # install PyTorch Detection
 ARG FORCE_CUDA="1"
 ENV FORCE_CUDA=${FORCE_CUDA}
-RUN git clone https://github.com/facebookresearch/maskrcnn-benchmark.git \
- && cd maskrcnn-benchmark \
+RUN git clone https://github.com/PMTD/PMTD.git \
+ && cd PMTD \
  && python setup.py build develop
 
 WORKDIR /maskrcnn-benchmark
