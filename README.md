@@ -1,21 +1,37 @@
-# PMTD in maskrcnn-benchmark
+# PMTD: Pyramid Mask Text Detector
+This project hosts the inference code for implementing the PMTD algorithm for text detection, as presented in our paper:
 
-This project hosts the code for implementing the network structure and plane clustering algorithm of PMTD for text detection, as presented in our paper:
-```bibtex
-@article{liu2019pyramid,
-  title={Pyramid Mask Text Detector},
-  author={Liu, Jingchao and Liu, Xuebo and Sheng, Jie and Liang, Ding and Li, Xin and Liu, Qingjie},
-  journal={arXiv preprint arXiv:1903.11800},
-  year={2019}
-}
-```
-The full paper is available at: [https://arxiv.org/abs/1903.11800](https://arxiv.org/abs/1903.11800). 
+    Pyramid Mask Text Detector;
+    Liu Jingchao, Liu Xuebo, Sheng Jie, Liang Ding, Li Xin and Liu Qingjie;
+    arXiv preprint arXiv:1903.11800 (2019).
+
+The full paper is available at: [https://arxiv.org/abs/1903.11800](https://arxiv.org/abs/1903.11800).
+
+![](./pmtd.png)
+
 ## Installation
 Check [INSTALL.md](INSTALL.md) for installation instructions.
 
+## Trained model
+We provide trained model on ICDAR 2017 MLT dataset, check [here](https://drive.google.com/open?id=1kh5wXqvD1KkaSLtyEG8RUDUfSK1CHnQT) for downloading. Note that the result is slightly different from we reported in the paper, because PMTD is based on a private codebase, we reimplement inference code based on [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark).
+
+Method|Precision|	Recall|	F-measure
+---|---|---|---
+This project|85.13%|72.85%|	78.51%
+Paper reported|85.15%| 72.77%| 78.48%
+
+## A quick demo
+
+```bash
+cd PROJECT_ROOT
+python demo/PMTD_demo.py \
+--image_path=datasets/icdar2017mlt/ch8_validation_images/img_1.jpg \
+--model_path=models/PMTD_ICDAR2017MLT.pth
+```
+
 ## Perform testing on ICDAR 2017 MLT dataset
 
-### symlink dataset
+### Prepare dataset
 We recommend to symlink [ICDAR 2017 MLT](http://rrc.cvc.uab.es/?ch=8) dataset to `datasets/` as follows
 ```bash
 # eg: ~/Projects/PMTD
@@ -28,26 +44,20 @@ cd datasets/icdar2017mlt
 ln -s /path_to_icdar2017mlt_dataset/ch8_test_images
 ```
 
-### generate coco label for dataset
+### Generate coco label for dataset
 ```bash
 # ${PWD} = datasets/icdar2017mlt
 mkdir annotations
 cd PROJECT_ROOT
-PYTHONPATH=. python demo/utils/generate_icdar2017.py
+python demo/utils/generate_icdar2017.py
 # label will output to PROJECT_ROOT/datasets/icdar2017mlt/annotations/test_coco.json
 ```
 
-### download the pretrained PMTD model
+### Test images
+In the test stage, we use one GPU of TITANX 11G with a batch size 4. When encountering the out-of-memory (OOM) error, you may need to modify TEST.IMS_PER_BATCH in `configs/e2e_PMTD_R_50_FPN_1x_test.yaml`.
 ```bash
-# ${PWD} = PROJECT_ROOT
-mkdir models
-wget url_to_model models/PMTD_rectify.pth
-```
-
-### test image
-In the test stage, we use one GPU of TITANX 11G with a batch size 4. When encountering the out-of-memory (OOM) error, you may need to modify `configs/e2e_PMTD_R_50_FPN_1x_test.yaml` TEST.IMS_PER_BATCH: 4.
-```bash
-PYTHONPATH=. python tools/test_net.py --config=configs/e2e_PMTD_R_50_FPN_1x_test.yaml
+# the download model should place in the path: models/PMTD_ICDAR2017MLT.pth
+python tools/test_net.py --config=configs/e2e_PMTD_R_50_FPN_1x_test.yaml
 # results will output to PROJECT_ROOT/inference/icdar_2017_mlt_test/
 # - bbox.json // when using coco evaluation criterion
 # - segm.json // when using coco evaluation criterion
@@ -56,24 +66,18 @@ PYTHONPATH=. python tools/test_net.py --config=configs/e2e_PMTD_R_50_FPN_1x_test
 # - results_{scale}.pth, in default setting, scale=1600
 ```
 
-### convert results to ICDAR 2017 format
+### Convert results to ICDAR 2017 submission format
 ```bash
-PYTHONPATH=. python demo/utils/convert_results_to_icdar.py
+python demo/utils/convert_results_to_icdar.py
 # results will output to PROJECT_ROOT/inference/icdar_2017_mlt_test/
 # - icdar.zip
 ```
 
 ### submit icdar.zip to [ICDAR 2017 MLT](http://rrc.cvc.uab.es/?ch=8)
 
-## Perform testing for single image
-```bash
-cd PROJECT_ROOT
-PYTHONPATH=. python demo/PMTD_demo.py --image_path=datasets/icdar2017mlt/ch8_test_images/img_1.jpg
-```
-
 ## Citations
-Please consider citing this project in your publications if it helps your research. The following is a BibTeX reference.
-```
+Please consider citing our paper in your publications if this project helps your research. BibTeX reference is as follows.
+```bibtex
 @article{liu2019pyramid,
   title={Pyramid Mask Text Detector},
   author={Liu, Jingchao and Liu, Xuebo and Sheng, Jie and Liang, Ding and Li, Xin and Liu, Qingjie},
@@ -83,5 +87,4 @@ Please consider citing this project in your publications if it helps your resear
 ```
 
 ## License
-
-PMTD is released under the MIT license. See [LICENSE](LICENSE) for additional details.
+Maskrcnn-benchmark is released under the MIT license. PMTD is released under the [Apache 2.0 license](LICENSE).
