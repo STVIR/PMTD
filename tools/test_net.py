@@ -44,9 +44,13 @@ def main():
     )
     parser.add_argument(
         "--coco_eval",
-        default="PlaneClustering",
-        choices=["PlaneClustering", "HardThreshold"],
-        help="eval method used in coco segmentation evaluation"
+        default="Skip",
+        choices=["Skip", "PlaneClustering"],
+        help="""
+            These choices means the eval method used in coco segmentation evaluation, when receiving a 28x28 mask.
+            'Skip' means not eval with coco and output points by PlaneClustering.
+            'PlaneClustering' means when eval with coco, use PlaneClustering to convert 28x28 mask to Run-length encoding (RLE)
+             """
     )
 
     args = parser.parse_args()
@@ -115,10 +119,12 @@ def main():
 
 
 def build_masker(coco_eval):
-    if coco_eval == 'PlaneClustering':
+    if coco_eval == 'Skip':
+        return None
+    elif coco_eval == 'PlaneClustering':
         return PlaneClustering()
     else:
-        return Masker(threshold=0.01, padding=1)
+        raise ValueError("No such eval method")
 
 
 if __name__ == "__main__":

@@ -3,3 +3,4 @@ yacs
 cython
 matplotlib
 tqdm
+pyclipper

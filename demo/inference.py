@@ -1,6 +1,9 @@
+import collections
 import logging
+import os
 
 import torch
+from tqdm import tqdm
 
 from maskrcnn_benchmark.modeling.roi_heads.mask_head.inference import Masker
 
@@ -118,3 +121,53 @@ def is_clockwise(corners):
         j = (i + 1) % n
         area += corners[i][0] * corners[j][1] - corners[j][0] * corners[i][1]
     return area > 0
+
+
+def prepare_data(dataset, predictions):
+    input_list = []
+    for image_id in range(len(predictions)):
+        original_id = dataset.id_to_img_map[image_id]
+        pred = predictions[image_id]
+        img_info = dataset.get_img_info(image_id)
+        if len(pred) == 0:
+            continue
+        pred = pred.resize((img_info["width"], img_info["height"]))
+        pred = pred.convert("xyxy")
+
+        boxes = pred.bbox  # boxes = [box_num, 4]
+        masks = pred.get_field("mask")  # masks = [mask_num,C=1, H=28, W=28]
+        scores = pred.get_field("scores")  # scores = [box_num, 4]
+
+        for box, mask, score in zip(boxes, masks, scores):
+            if score < 0.3:
+                continue
+            input_data = (original_id, box, mask, score)
+            input_list.append(input_data)
+
+    return input_list
+
+
+def save_results(dataset, predictions, save_path):
+    input_list = prepare_data(dataset, predictions)
+    pc = PlaneClustering()
+
+    coco_results = collections.defaultdict(list)
+    for image_id, box, mask, score in tqdm(input_list):
+        # mask [C=1, H=28, W=28], points [4, 2]
+        points = pc.reg_pyramid_in_image(mask[0], box)
+        points = torch.round(points).to(torch.int32).numpy()
+        if not is_clockwise(points):  # may cause by clamp() and round()
+            continue
+        coco_results[image_id].append({"points": points, "cls_score": score})
+    torch.save(coco_results, save_path)
+
+
+if __name__ == '__main__':
+    def main():
+        p = torch.load('inference/icdar_2017_mlt_test/predictions.pth')
+        d = torch.load('inference/icdar_2017_mlt_test/dataset.pth')
+        save_path = os.path.join('inference/icdar_2017_mlt_test', f"results_{max(p[0].size)}.pth")
+        save_results(d, p, save_path)
+
+
+    main()

@@ -5,6 +5,7 @@ import os
 import torch
 from tqdm import tqdm
 
+from demo.inference import save_results
 from maskrcnn_benchmark.data.datasets.evaluation import evaluate
 from maskrcnn_benchmark.modeling.roi_heads.mask_head.inference import Masker
 from ..utils.comm import all_gather
@@ -102,6 +103,13 @@ def inference(
 
     if output_folder:
         torch.save(predictions, os.path.join(output_folder, "predictions.pth"))
+        torch.save(dataset, os.path.join(output_folder, "dataset.pth"))
+
+    if masker is None:
+        assert output_folder is not None
+        save_path = os.path.join(output_folder, f"results_{max(predictions[0].size)}.pth")
+        save_results(dataset, predictions, save_path)
+        return
 
     assert isinstance(masker, Masker)
 

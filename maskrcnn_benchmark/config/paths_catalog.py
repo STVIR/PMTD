@@ -107,7 +107,11 @@ class DatasetCatalog(object):
         "icdar_2017_mlt_val": {
             "img_dir": "icdar2017mlt/ch8_validation_images",
             "ann_file": "icdar2017mlt/annotations/validate_coco_with_ignore.json"
-        }
+        },
+        "icdar_2017_mlt_test": {
+            "img_dir": "icdar2017mlt/ch8_test_images",
+            "ann_file": "icdar2017mlt/annotations/test_coco.json"
+        },
     }
 
     @staticmethod
