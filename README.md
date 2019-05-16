@@ -13,12 +13,21 @@ The full paper is available at: [https://arxiv.org/abs/1903.11800](https://arxiv
 Check [INSTALL.md](INSTALL.md) for installation instructions.
 
 ## Trained model
-We provide trained model on ICDAR 2017 MLT dataset, check [here](https://drive.google.com/open?id=1kh5wXqvD1KkaSLtyEG8RUDUfSK1CHnQT) for downloading. Note that the result is slightly different from we reported in the paper, because PMTD is based on a private codebase, we reimplement inference code based on [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark).
+We provide trained model on ICDAR 2017 MLT dataset [here](https://drive.google.com/open?id=1kh5wXqvD1KkaSLtyEG8RUDUfSK1CHnQT) and ICDAR 2015 dataset [here](https://drive.google.com/open?id=1hI6uDaUefCrD1oYoKMdflTY6Ocl2Y46-) for downloading. Note that the result is slightly different from we reported in the paper, because PMTD is based on a private codebase, we reimplement inference code based on [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark).
+
+ICDAR 2017  
+
+Method|Precision|  Recall|    F-measure
+---|---|---|---
+This project|85.13%|72.85%|    78.51%
+Paper reported|85.15%| 72.77%| 78.48%
+
+ICDAR 2015  
 
 Method|Precision|	Recall|	F-measure
 ---|---|---|---
-This project|85.13%|72.85%|	78.51%
-Paper reported|85.15%| 72.77%| 78.48%
+This project|87.48%|91.26%|	89.33%
+Paper reported|87.43%| 91.30%| 89.33%
 
 ## A quick demo
 
@@ -57,7 +66,7 @@ python demo/utils/generate_icdar2017.py
 In the test stage, we use one GPU of TITANX 11G with a batch size 4. When encountering the out-of-memory (OOM) error, you may need to modify TEST.IMS_PER_BATCH in `configs/e2e_PMTD_R_50_FPN_1x_test.yaml`.
 ```bash
 # the download model should place in the path: models/PMTD_ICDAR2017MLT.pth
-python tools/test_net.py --config=configs/e2e_PMTD_R_50_FPN_1x_test.yaml
+python tools/test_net.py --config=configs/e2e_PMTD_R_50_FPN_1x_ICDAR2017MLT_test.yaml
 # results will output to PROJECT_ROOT/inference/icdar_2017_mlt_test/
 # - bbox.json // when using coco evaluation criterion
 # - segm.json // when using coco evaluation criterion
