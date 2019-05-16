@@ -1,12 +1,12 @@
 import collections
 import os
-import pyclipper
 import zipfile
 from typing import List, Dict, DefaultDict
 from zipfile import ZipFile
 
 import cv2
 import numpy as np
+import pyclipper
 import torch
 
 
@@ -60,17 +60,11 @@ def nms(items: List, threshold: float):
     return np.asarray(items)[keep]
 
 
-if __name__ == '__main__':
-    os.chdir('inference/icdar_2017_mlt_test')
-
-    tags = ['1600']
+def output_results(output_dir, scales, image_num, cls_threshold_list, nms_threshold, line_format, pred_file_template):
+    os.chdir(output_dir)
     result_merge_path = 'results_multi_scale.pth'
-    result_path_list = [f'results_{tag}.pth' for tag in tags]
-    results: dict = get_results(result_path_list, result_merge_path, 9000, regenerate=True)
-
-    cls_threshold_list = [0.5]
-    nms_threshold = 0.1
-    items: List[Dict]
+    result_path_list = [f'results_{tag}.pth' for tag in scales]
+    results: dict = get_results(result_path_list, result_merge_path, image_num, regenerate=True)
     with ZipFile('icdar.zip', 'w', compression=zipfile.ZIP_DEFLATED) as result_zip:
         for image_id, item_lists in results.items():
             items = []
@@ -82,6 +76,38 @@ if __name__ == '__main__':
             lines = []
             for item in items:
                 bbox = item['points'].ravel().astype(np.str).tolist()
-                line = f"{','.join(bbox)}, {item['cls_score']}\n"
+                score = item['cls_score']
+                line = line_format(bbox, score)
                 lines.append(line)
-            result_zip.writestr('res_img_%05d.txt' % image_id, str.join('', lines))
+            result_zip.writestr(pred_file_template % image_id, str.join('', lines))
+
+
+if __name__ == '__main__':
+    # postprocess_config = {
+    #     'output_dir': None,
+    #     'scales': [],
+    #     'image_num': 0,
+    #     'cls_threshold_list': [],
+    #     'nms_threshold': 0,
+    #     'line_format': lambda bbox, cls_score: None,
+    #     'pred_file_template': None
+    # }
+    postprocess_config_17 = {
+        'output_dir': 'inference/icdar_2017_mlt_test',
+        'scales': [1600],
+        'image_num': 9000,
+        'cls_threshold_list': [0.5],
+        'nms_threshold': 0.1,
+        'line_format': lambda bbox, cls_score: f"{','.join(bbox)}, {cls_score}\n",
+        'pred_file_template': 'res_img_%05d.txt'
+    }
+    postprocess_config_15 = {
+        'output_dir': 'inference/icdar_2015_test',
+        'scales': [1920],
+        'image_num': 500,
+        'cls_threshold_list': [0.4],
+        'nms_threshold': 0.3,
+        'line_format': lambda bbox, cls_score: f"{','.join(bbox)}\n",
+        'pred_file_template': 'res_img_%d.txt'
+    }
+    output_results(**postprocess_config_17)

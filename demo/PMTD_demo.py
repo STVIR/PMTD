@@ -51,7 +51,7 @@ def build_parser():
 
 
 def create_pmtd_demo(args):
-    cfg.merge_from_file("configs/e2e_PMTD_R_50_FPN_1x_test.yaml")
+    cfg.merge_from_file("configs/e2e_PMTD_R_50_FPN_1x_ICDAR2017MLT_test.yaml")
     cfg.merge_from_list([
         'MODEL.DEVICE', args.device,
         'MODEL.WEIGHT', args.model_path,
