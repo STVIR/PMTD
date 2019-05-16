@@ -86,5 +86,10 @@ Please consider citing our paper in your publications if this project helps your
 }
 ```
 
+## Contributors
+
+- [Jingchao Liu](https://github.com/JingChaoLiu)
+- [Xuebo Liu](https://github.com/liuxuebo0)
+
 ## License
 Maskrcnn-benchmark is released under the MIT license. PMTD is released under the [Apache 2.0 license](LICENSE).
