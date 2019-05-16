@@ -54,7 +54,7 @@ RUN git clone https://github.com/NVIDIA/apex.git \
 # install PyTorch Detection
 ARG FORCE_CUDA="1"
 ENV FORCE_CUDA=${FORCE_CUDA}
-RUN git clone https://github.com/PMTD/PMTD.git \
+RUN git clone https://github.com/STVIR/PMTD.git \
  && cd PMTD \
  && python setup.py build develop
 

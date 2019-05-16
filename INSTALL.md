@@ -50,7 +50,7 @@ python setup.py install --cuda_ext --cpp_ext
 
 # install PyTorch Detection
 cd $INSTALL_DIR
-git clone https://github.com/PMTD/PMTD.git
+git clone https://github.com/STVIR/PMTD.git
 cd PMTD
 
 # the following will install the lib with
